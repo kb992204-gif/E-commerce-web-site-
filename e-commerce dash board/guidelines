@@ -1,0 +1,815 @@
+# E-COMMERCE SALES & PROFIT ANALYTICS — DEVELOPMENT GUIDELINES
+
+## 1. Build Step-by-Step
+
+Never build the entire project in one response.
+
+Follow this order:
+
+1. Project setup
+2. Dataset inspection
+3. Data cleaning
+4. Database
+5. Business calculations
+6. Dashboard
+7. Individual analytics pages
+8. Data upload
+9. Testing
+10. Security
+11. Deployment
+12. Optional AI features
+
+Complete and test one stage before moving to the next.
+
+---
+
+## 2. Use My Actual Data
+
+The existing project data is the source of truth.
+
+Do not create fake historical records just to make a chart work.
+
+Before implementing a feature, check whether the required data exists.
+
+Example:
+
+If there is no `payment_method` column, do not invent UPI/COD transactions.
+
+Instead:
+
+* Clearly identify the missing field.
+* Design the database to support it.
+* Allow future real data to contain that field.
+
+---
+
+## 3. Never Hard-Code Business Numbers
+
+Never write code such as:
+
+```python
+total_sales = 500000
+profit = 85000
+orders = 1200
+```
+
+All values must be calculated from the database/data.
+
+For example:
+
+```python
+total_sales = df["sales"].sum()
+```
+
+The dashboard should automatically change when the underlying data changes.
+
+---
+
+## 4. Separate Raw and Processed Data
+
+Never directly modify the original dataset.
+
+Use:
+
+```text
+data/
+├── raw/
+└── processed/
+```
+
+The original file remains untouched.
+
+Cleaning and transformation should produce a separate processed dataset.
+
+---
+
+## 5. Treat Business Calculations Carefully
+
+Clearly define every metric.
+
+For example:
+
+```text
+Gross Sales
+= Quantity × Selling Price
+
+Net Sales
+= Gross Sales - Discount
+
+Profit
+= Net Sales - Cost
+
+Profit Margin
+= Profit / Net Sales × 100
+
+AOV
+= Net Sales / Orders
+```
+
+Do not use a formula without explaining what it represents.
+
+---
+
+## 6. Distinguish Revenue, Sales and Profit
+
+Do not use these terms interchangeably.
+
+The dashboard should clearly distinguish:
+
+* Gross Sales
+* Discounts
+* Net Sales
+* Revenue
+* Cost
+* Profit
+* Loss
+* Profit Margin
+* Refunds
+* Returns
+
+If the source dataset uses a different definition, document it.
+
+---
+
+## 7. Handle Missing Information Honestly
+
+If information is unavailable, display something like:
+
+> "Not available in the current dataset."
+
+Do NOT display:
+
+> ₹0
+
+unless ₹0 is actually supported by the data.
+
+Missing data and zero are different things.
+
+---
+
+## 8. Payment Methods
+
+Support:
+
+* UPI
+* Cash on Delivery
+* Credit Card
+* Debit Card
+* Net Banking
+* Wallet
+* Other
+
+But only calculate historical payment analytics when payment information actually exists.
+
+For future uploaded data, validate the payment method against the supported schema.
+
+---
+
+## 9. Returns
+
+Do not assume that an order was returned simply because an order was cancelled.
+
+Keep these concepts separate:
+
+* Cancelled
+* Returned
+* Refunded
+* Delivered
+
+They represent different business events.
+
+---
+
+## 10. Profit/Loss
+
+A product should not automatically be considered profitable merely because it generated sales.
+
+Profit requires cost information.
+
+If the dataset contains:
+
+```text
+Selling Price
+```
+
+but does not contain:
+
+```text
+Cost Price
+```
+
+then true profit cannot be calculated.
+
+Clearly identify this limitation.
+
+---
+
+## 11. Database First for Real-World Usage
+
+The final application should not permanently depend on one CSV file.
+
+Use:
+
+```text
+CSV / Excel
+      ↓
+Validation
+      ↓
+Cleaning
+      ↓
+Database
+      ↓
+Analytics
+      ↓
+Dashboard
+```
+
+This makes the application closer to a real business system.
+
+---
+
+## 12. Use SQL Properly
+
+Do not use SQL only because it looks good on a resume.
+
+Use SQL for actual database operations:
+
+* SELECT
+* WHERE
+* GROUP BY
+* ORDER BY
+* JOIN
+* Aggregation
+* Date filtering
+* Customer analysis
+* Product analysis
+
+Use Pandas where it is more appropriate for data processing.
+
+---
+
+## 13. Avoid One Giant Python File
+
+Do not put the entire application in:
+
+```text
+app.py
+```
+
+Separate responsibilities.
+
+For example:
+
+```text
+database.py
+data_cleaning.py
+validation.py
+calculations.py
+analytics.py
+```
+
+This makes the project easier to maintain.
+
+---
+
+## 14. Keep UI Separate From Business Logic
+
+The dashboard should not contain hundreds of lines of calculations.
+
+Prefer:
+
+```text
+UI
+ ↓
+Analytics functions
+ ↓
+Database
+```
+
+instead of:
+
+```text
+UI + SQL + calculations + cleaning + database
+```
+
+all mixed together.
+
+---
+
+## 15. Dashboard Filters Must Actually Work
+
+If the user selects:
+
+```text
+January 2026
+```
+
+then every relevant KPI and chart should update according to that filter.
+
+Do not create filters that only change the appearance while leaving the underlying numbers unchanged.
+
+---
+
+## 16. Date Handling
+
+Convert date columns properly.
+
+Support:
+
+* Daily
+* Weekly
+* Monthly
+* Quarterly
+* Yearly
+
+Be careful with:
+
+* Different date formats
+* Missing dates
+* Invalid dates
+* Time zones where applicable
+
+---
+
+## 17. Data Validation Before Database Insertion
+
+When a user uploads a file:
+
+```text
+Upload
+ ↓
+Check columns
+ ↓
+Check data types
+ ↓
+Check duplicates
+ ↓
+Check missing values
+ ↓
+Check invalid values
+ ↓
+Preview
+ ↓
+Confirm
+ ↓
+Database
+```
+
+Never automatically insert potentially invalid business data.
+
+---
+
+## 18. Do Not Delete Bad Data Silently
+
+If 100 rows are invalid, tell the user.
+
+Example:
+
+```text
+Total records: 10,000
+Valid records: 9,850
+Invalid records: 150
+Duplicates: 50
+Missing values: 100
+```
+
+Allow the user to understand what happened.
+
+---
+
+## 19. Security
+
+Never put secrets directly into Python code.
+
+Bad:
+
+```python
+password = "mypassword123"
+```
+
+Good:
+
+```text
+.env
+```
+
+Use environment variables.
+
+Never upload:
+
+```text
+.env
+```
+
+to GitHub.
+
+---
+
+## 20. Privacy
+
+If real customer information is eventually used, protect:
+
+* Names
+* Email addresses
+* Phone numbers
+* Addresses
+* Customer IDs
+* Payment information
+
+Do not publish private customer data in a public GitHub repository or demo website.
+
+For portfolio demonstrations, use anonymized or synthetic customer information when necessary.
+
+---
+
+## 21. Performance
+
+The dashboard should remain usable as the dataset grows.
+
+Prefer:
+
+* SQL aggregation
+* Database indexes
+* Efficient Pandas operations
+* Streamlit caching where appropriate
+* Pagination for large tables
+
+Avoid unnecessary Python loops over large datasets.
+
+---
+
+## 22. Charts Must Have Business Meaning
+
+Do not add charts just to make the dashboard look impressive.
+
+Every chart should answer a business question.
+
+Examples:
+
+### Sales trend
+
+> How are sales changing over time?
+
+### Profit trend
+
+> Is profitability increasing or decreasing?
+
+### Payment distribution
+
+> How are customers paying?
+
+### Return analysis
+
+> Which products/categories have the highest return volume?
+
+### Product performance
+
+> Which products generate the most revenue/profit?
+
+---
+
+## 23. Use Appropriate Visualizations
+
+Recommended:
+
+| Business Question    | Visualization                           |
+| -------------------- | --------------------------------------- |
+| Sales trend          | Line chart                              |
+| Profit trend         | Line chart                              |
+| Category sales       | Bar chart                               |
+| Payment distribution | Donut/Pie                               |
+| Product performance  | Horizontal bar                          |
+| Order status         | Bar/Donut                               |
+| Returns over time    | Line chart                              |
+| Geographic sales     | Map where reliable location data exists |
+| Detailed records     | Table                                   |
+
+Do not use complicated charts when a simple chart communicates the information better.
+
+---
+
+## 24. Avoid Misleading Visualizations
+
+Do not manipulate axes or scales to exaggerate differences.
+
+Do not make a small difference appear huge.
+
+Keep chart titles and units clear.
+
+Example:
+
+```text
+Monthly Net Sales (₹)
+```
+
+is better than:
+
+```text
+Sales
+```
+
+---
+
+## 25. Currency
+
+Since this project is intended for an Indian e-commerce context, use:
+
+```text
+₹
+```
+
+where the underlying monetary data is in INR.
+
+Clearly document the currency.
+
+Do not assume a currency if the dataset does not establish one.
+
+---
+
+## 26. Mobile/Responsive Design
+
+The dashboard should remain usable on different screen sizes where Streamlit permits.
+
+Prioritize:
+
+* Clear KPI cards
+* Readable charts
+* Scrollable tables
+* Simple sidebar navigation
+
+---
+
+## 27. Error Messages Should Be Simple
+
+Avoid showing confusing Python tracebacks to normal users.
+
+For example, instead of only:
+
+```text
+KeyError: payment_method
+```
+
+show:
+
+> Payment method information is missing from the uploaded dataset. Required column: `payment_method`.
+
+During development, retain useful technical errors for debugging.
+
+---
+
+## 28. Logging
+
+For a more real-world architecture, maintain useful logs for:
+
+* Data uploads
+* Validation failures
+* Database errors
+* Application errors
+
+Do not log sensitive credentials or private payment information.
+
+---
+
+## 29. Testing
+
+Test the application with:
+
+### Normal data
+
+Everything valid.
+
+### Missing data
+
+Some values missing.
+
+### Duplicate data
+
+Duplicate orders/transactions.
+
+### Invalid data
+
+Negative quantity, invalid dates, invalid prices.
+
+### Empty file
+
+No records.
+
+### Wrong file
+
+Unsupported columns/file type.
+
+### Large file
+
+Check performance.
+
+### Database unavailable
+
+Application should show a useful error.
+
+---
+
+## 30. Deployment
+
+Before deployment:
+
+```text
+Local application
+        ↓
+Testing
+        ↓
+GitHub
+        ↓
+Production database
+        ↓
+Streamlit Cloud
+        ↓
+Live website
+```
+
+Do not deploy before testing the application locally.
+
+---
+
+## 31. Free Services
+
+Prefer free/free-tier services for this student project.
+
+Possible choices:
+
+* GitHub
+* Streamlit Community Cloud
+* Supabase free tier, subject to its current limits
+* Free/open-source Python libraries
+* Plotly
+* Pandas
+* NumPy
+
+Always check current free-tier limits before relying on a service for production use.
+
+---
+
+## 32. AI Should Be Optional
+
+Do not make AI the foundation of the dashboard.
+
+The correct architecture is:
+
+```text
+DATA
+ ↓
+DATABASE
+ ↓
+CALCULATIONS
+ ↓
+DASHBOARD
+ ↓
+OPTIONAL AI
+```
+
+Not:
+
+```text
+DATA
+ ↓
+AI
+ ↓
+Random business numbers
+```
+
+AI can explain analytics, detect anomalies, or generate forecasts, but the underlying business calculations must remain deterministic and traceable.
+
+---
+
+## 33. Explainability
+
+For every major KPI, the user should be able to understand where the number came from.
+
+Example:
+
+```text
+Profit = ₹85,420
+
+Calculation:
+Net Sales = ₹250,000
+Cost = ₹164,580
+Profit = ₹250,000 - ₹164,580
+```
+
+This is useful for both real users and your interview demonstration.
+
+---
+
+## 34. Resume/Interview Quality
+
+Build the project so you can confidently explain:
+
+### Python
+
+How Pandas and NumPy process the data.
+
+### SQL
+
+How data is stored and queried.
+
+### Database
+
+How tables are related.
+
+### Data Analytics
+
+How KPIs are calculated.
+
+### Visualization
+
+Why particular charts were selected.
+
+### Streamlit
+
+How the web application works.
+
+### Git/GitHub
+
+How the project is version controlled.
+
+### Deployment
+
+How the application became a live website.
+
+### AI
+
+Why AI was added and what problem it solves.
+
+Do not add technologies merely to increase the technology list.
+
+---
+
+## 35. Documentation
+
+Maintain a professional README containing:
+
+* Project overview
+* Problem statement
+* Features
+* Tech stack
+* Architecture
+* Dataset description
+* Database schema
+* Installation
+* Running locally
+* Screenshots
+* Deployment
+* Future improvements
+
+---
+
+## 36. Git Commit Strategy
+
+Do not make one giant commit at the end.
+
+Use meaningful commits such as:
+
+```text
+Initial project setup
+Add dataset profiling
+Add data cleaning
+Add database schema
+Add sales calculations
+Add dashboard
+Add payment analytics
+Add return analytics
+Add upload validation
+Add deployment configuration
+```
+
+---
+
+## 37. Development Rule for AI Coding Assistants
+
+When I ask for a feature:
+
+1. Understand the existing project.
+2. Check the existing files.
+3. Reuse existing code where appropriate.
+4. Do not unnecessarily rewrite working code.
+5. Tell me which files will change.
+6. Give the implementation.
+7. Explain how to test it.
+8. Wait for my confirmation before moving to another major feature.
+
+Never overwrite working functionality without a reason.
+
+---
+
+# FINAL PRINCIPLE
+
+The objective is NOT:
+
+> "Make a dashboard that looks impressive."
+
+The objective is:
+
+> **Build a small but realistic e-commerce analytics system that accepts business data, stores it correctly, calculates trustworthy metrics, visualizes them clearly, and can be deployed as a functioning web application.**
+
+Every feature must follow:
+
+**Real Data → Validation → Database → Calculation → Visualization → User Interaction → Deployment**

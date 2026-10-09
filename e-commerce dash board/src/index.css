@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .clean-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(51, 65, 85, 0.4);
+    border-radius: 1rem;
+  }
+  .clean-card-hover {
+    transition: all 0.2s ease-in-out;
+  }
+  .clean-card-hover:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+    background: rgba(15, 23, 42, 0.9);
+  }
+}
+
+/* Custom Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
